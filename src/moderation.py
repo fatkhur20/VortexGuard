@@ -1,9 +1,50 @@
-from .config import FORBIDDEN_KEYWORDS
+from .config import FORBIDDEN_KEYWORDS, FLOOD_WINDOW, FLOOD_MAX_MESSAGES, HEATED_KEYWORDS, FAQ_DATA
 from .logger import logger
+from .storage import storage
+import time
 
 class AutoModerator:
     def __init__(self):
-        self.user_violations = {} # user_id -> count
+        self.message_timestamps = {} # user_id -> [timestamps]
+
+    def check_flood(self, user_id):
+        """
+        Checks if user is sending too many messages.
+        """
+        now = time.time()
+        timestamps = self.message_timestamps.get(user_id, [])
+        # Filter old
+        timestamps = [t for t in timestamps if now - t < FLOOD_WINDOW]
+        timestamps.append(now)
+        self.message_timestamps[user_id] = timestamps
+
+        if len(timestamps) > FLOOD_MAX_MESSAGES:
+            return True
+        return False
+
+    def detect_heated_debate(self, text):
+        """
+        Simple heuristic: Check for aggressive keywords.
+        """
+        if not text:
+            return False
+
+        lower = text.lower()
+        for kw in HEATED_KEYWORDS:
+            if kw in lower:
+                return True
+        return False
+
+    def check_faq(self, text):
+        """
+        Returns answer if text matches FAQ keywords.
+        """
+        if not text: return None
+        lower = text.lower()
+        for key, answer in FAQ_DATA.items():
+            if key in lower:
+                return answer
+        return None
 
     def check_content(self, text):
         """
@@ -30,8 +71,7 @@ class AutoModerator:
         3. Kick
         4. Ban
         """
-        count = self.user_violations.get(user_id, 0) + 1
-        self.user_violations[user_id] = count
+        count = storage.add_violation(user_id)
 
         if count == 1:
             return "WARNING"
@@ -43,6 +83,6 @@ class AutoModerator:
             return "BAN"
 
     def get_violation_count(self, user_id):
-        return self.user_violations.get(user_id, 0)
+        return storage.get_user(user_id)["violations"]
 
 auto_moderator = AutoModerator()

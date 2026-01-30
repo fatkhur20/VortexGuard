@@ -24,10 +24,18 @@ class AntiRaid:
             if not self.is_raid_mode:
                 self.is_raid_mode = True
                 return True
-        elif len(self.join_timestamps) == 0:
-             self.is_raid_mode = False
+        # Logic to auto-disable raid mode could be time-based here
+        # For now, we rely on manual reset or simple decay
 
         return False
+
+    def is_safe(self):
+        """
+        Returns True if join rate has cooled down.
+        """
+        now = time.time()
+        recent_joins = [t for t in self.join_timestamps if now - t < RAID_TRIGGER_WINDOW]
+        return len(recent_joins) == 0
 
     def reset(self):
         self.join_timestamps = []

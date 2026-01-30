@@ -32,3 +32,21 @@ RULES_TEXT = """
 
 # Lifecycle
 VERIFICATION_TIMEOUT = 60 # Seconds to solve captcha
+# Flood Control
+FLOOD_WINDOW = 5 # Seconds
+FLOOD_MAX_MESSAGES = 4 # Max messages in window
+
+# Heated Debate Detection
+HEATED_KEYWORDS = [
+    "shut up", "idiot", "stupid", "fuck", "bitch", "retard", "dumb",
+    "clown", "garbage", "trash"
+]
+# Trust System
+TRUST_MSG_THRESHOLD = 5 # Messages needed to post links/media
+# FAQ
+FAQ_DATA = {
+    "price": "Please check our website for pricing.",
+    "rules": "Read the pinned message for rules.",
+    "support": "Contact @admin for support.",
+    "token": "The token address is 0x123..."
+}

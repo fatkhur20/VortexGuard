@@ -1,8 +1,8 @@
 from .logger import logger
+from .storage import storage
 
 class MemberLifecycle:
     def __init__(self):
-        self.verified_users = set()
         self.pending_users = set()
 
     def add_new_member(self, user_id):
@@ -10,9 +10,8 @@ class MemberLifecycle:
         Mark a new member as pending verification.
         """
         self.pending_users.add(user_id)
-        # In case they rejoin, reset verification status
-        if user_id in self.verified_users:
-            self.verified_users.remove(user_id)
+        # Reset verification in storage
+        storage.set_verified(user_id, False)
         logger.info(f"User {user_id} added to pending verification.")
 
     def verify_member(self, user_id):
@@ -21,14 +20,14 @@ class MemberLifecycle:
         """
         if user_id in self.pending_users:
             self.pending_users.remove(user_id)
-        self.verified_users.add(user_id)
+        storage.set_verified(user_id, True)
         logger.info(f"User {user_id} verified.")
 
     def is_verified(self, user_id):
         """
         Check if a user is verified.
         """
-        return user_id in self.verified_users
+        return storage.is_verified(user_id)
 
     def is_pending(self, user_id):
         return user_id in self.pending_users
